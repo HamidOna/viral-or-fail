@@ -4,7 +4,7 @@
 
 **An interactive CLI game where three AI agents judge whether your gaming content would go viral — or flop.**
 
-Pick a trending gaming topic, choose a platform (TikTok, Twitter/X, YouTube, Instagram), and watch a Content Creator, Algorithm Simulator, and Audience Persona battle it out. Built with [AutoGen](https://github.com/microsoft/autogen) and powered by [GitHub Models](https://github.com/marketplace/models) (free).
+Pick a trending gaming topic, choose a platform (TikTok, Twitter/X, YouTube, Instagram), and watch a Content Creator, Algorithm Simulator, and Audience Persona battle it out. Built with [Microsoft Agent Framework](https://github.com/microsoft/agent-framework) and powered by [GitHub Models](https://github.com/marketplace/models) (free).
 
 ## How It Works
 
@@ -45,7 +45,7 @@ python viral_or_fail.py
 
 ## Tech Stack
 
-- **[AutoGen](https://github.com/microsoft/autogen)** — multi-agent orchestration
+- **[Microsoft Agent Framework](https://github.com/microsoft/agent-framework)** — multi-agent orchestration (successor to AutoGen)
 - **[GitHub Models](https://github.com/marketplace/models)** — free LLM inference (GPT-4.1-mini)
 - **[trendspy](https://github.com/sdil87/trendspy)** — Google Trends data (replaces archived pytrends)
 - **[Rich](https://github.com/Textualize/rich)** — terminal UI with colored panels and tables

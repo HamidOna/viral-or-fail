@@ -6,20 +6,21 @@ An interactive CLI game where you play as a gaming content creator.
 Pick a trending topic, choose a platform, and watch three AI agents
 simulate whether your content would go viral — or flop.
 
-Built with AutoGen for multi-agent orchestration.
+Built with Microsoft Agent Framework for multi-agent orchestration.
 """
 
+import asyncio
 import os
 import re
 import sys
 
-import autogen
+from agent_framework import Agent
+from agent_framework.openai import OpenAIChatClient
 from dotenv import load_dotenv
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import IntPrompt, Prompt
 from rich.table import Table
-from rich.text import Text
 
 from agents.creator import create_content_creator_agent
 from agents.algorithm import create_algorithm_simulator_agent
@@ -48,10 +49,10 @@ BANNER = r"""
 [/bold magenta]"""
 
 
-# ── LLM Configuration ───────────────────────────────────────────────────────
+# ── Chat Client ──────────────────────────────────────────────────────────────
 
-def get_llm_config() -> dict:
-    """Build the AutoGen LLM configuration for GitHub Models."""
+def get_chat_client() -> OpenAIChatClient:
+    """Build the Agent Framework chat client for GitHub Models."""
     api_key = os.getenv("GITHUB_TOKEN")
     if not api_key:
         console.print(
@@ -62,29 +63,10 @@ def get_llm_config() -> dict:
         )
         sys.exit(1)
 
-    return {
-        "config_list": [
-            {
-                "model": "openai/gpt-4.1-mini",
-                "api_key": api_key,
-                "base_url": "https://models.github.ai/inference",
-                "price": [0, 0],  # GitHub Models free tier
-            }
-        ],
-        "temperature": 0.8,
-        "cache_seed": None,  # Disable caching for fresh responses each run
-    }
-
-
-# ── User Proxy (human-in-the-loop) ──────────────────────────────────────────
-
-def create_user_proxy() -> autogen.UserProxyAgent:
-    """Create the user proxy agent that sends messages on behalf of the player."""
-    return autogen.UserProxyAgent(
-        name="Player",
-        human_input_mode="NEVER",  # We handle input ourselves via rich
-        max_consecutive_auto_reply=0,
-        code_execution_config=False,
+    return OpenAIChatClient(
+        model_id="openai/gpt-4.1-mini",
+        api_key=api_key,
+        base_url="https://models.github.ai/inference",
     )
 
 
@@ -244,30 +226,15 @@ def extract_scores(algorithm_response: str) -> dict:
 
 # ── Agent Interaction ────────────────────────────────────────────────────────
 
-def get_agent_response(
-    user_proxy: autogen.UserProxyAgent,
-    agent: autogen.AssistantAgent,
-    message: str,
-) -> str:
+async def get_agent_response(agent: Agent, message: str, session=None) -> str:
     """
     Send a message to an agent and get its response.
 
-    Uses AutoGen's initiate_chat to run a single turn of conversation.
+    Uses Agent Framework's async run() with an optional session
+    for maintaining conversation context across rounds.
     """
-    result = user_proxy.initiate_chat(
-        agent,
-        message=message,
-        max_turns=1,
-        clear_history=False,
-    )
-
-    # Extract the agent's last reply
-    if result and result.chat_history:
-        for msg in reversed(result.chat_history):
-            if msg.get("role") == "assistant" or msg.get("name") == agent.name:
-                return msg.get("content", "")
-
-    return "No response generated."
+    result = await agent.run(message, session=session)
+    return result.text or "No response generated."
 
 
 # ── Game Loop ────────────────────────────────────────────────────────────────
@@ -316,24 +283,29 @@ def build_scoring_rubric(platform: str) -> str:
     return "\n".join(lines)
 
 
-def run_game() -> None:
+async def run_game() -> None:
     """Main game loop."""
     console.print(BANNER)
 
     console.print(
-        "[dim]A tutorial project for building multi-agent systems with AutoGen[/dim]\n"
+        "[dim]A tutorial project for building multi-agent systems "
+        "with Microsoft Agent Framework[/dim]\n"
     )
 
     # ── Setup ──
 
-    llm_config = get_llm_config()
+    client = get_chat_client()
 
     console.print("[bold]Setting up AI agents...[/bold]\n")
 
-    user_proxy = create_user_proxy()
-    creator = create_content_creator_agent(llm_config)
-    algorithm = create_algorithm_simulator_agent(llm_config)
-    audience_agent, persona = create_audience_persona_agent(llm_config)
+    creator = create_content_creator_agent(client)
+    algorithm = create_algorithm_simulator_agent(client)
+    audience_agent, persona = create_audience_persona_agent(client)
+
+    # Create sessions so agents maintain context across iteration rounds
+    creator_session = creator.create_session()
+    algorithm_session = algorithm.create_session()
+    audience_session = audience_agent.create_session()
 
     console.print(f"  [green]Content Creator[/green] — ready")
     console.print(f"  [blue]Algorithm Simulator[/blue] — ready")
@@ -396,8 +368,8 @@ def run_game() -> None:
         console.print("[bold green]Content Creator is cooking...[/bold green]")
 
         if iteration == 1:
-            creator_response = get_agent_response(
-                user_proxy, creator, creator_prompt
+            creator_response = await get_agent_response(
+                creator, creator_prompt, session=creator_session
             )
         else:
             # Revision prompt with feedback from previous round
@@ -411,8 +383,8 @@ def run_game() -> None:
                 f"Revise your content to address their concerns. Keep what works, "
                 f"fix what doesn't. Show what you changed and why."
             )
-            creator_response = get_agent_response(
-                user_proxy, creator, revision_prompt
+            creator_response = await get_agent_response(
+                creator, revision_prompt, session=creator_session
             )
 
         display_agent_response("Content Creator", creator_response, "green")
@@ -430,8 +402,8 @@ def run_game() -> None:
             f"Be specific and reference platform algorithm mechanics."
         )
 
-        algorithm_response = get_agent_response(
-            user_proxy, algorithm, algorithm_prompt
+        algorithm_response = await get_agent_response(
+            algorithm, algorithm_prompt, session=algorithm_session
         )
 
         display_agent_response("Algorithm Simulator", algorithm_response, "blue")
@@ -448,8 +420,8 @@ def run_game() -> None:
             f"--- THE POST ---\n{creator_response}"
         )
 
-        audience_response = get_agent_response(
-            user_proxy, audience_agent, audience_prompt
+        audience_response = await get_agent_response(
+            audience_agent, audience_prompt, session=audience_session
         )
 
         display_agent_response(
@@ -532,7 +504,7 @@ def run_game() -> None:
 
 if __name__ == "__main__":
     try:
-        run_game()
+        asyncio.run(run_game())
     except KeyboardInterrupt:
         console.print("\n\n[dim]Game interrupted. See you next time![/dim]")
         sys.exit(0)

@@ -5,7 +5,8 @@ This agent is cold, analytical, and speaks in metrics. It doesn't care about
 creativity or feelings — only signals, weights, and distribution mechanics.
 """
 
-import autogen
+from agent_framework import Agent
+from agent_framework.openai import OpenAIChatClient
 
 ALGORITHM_SYSTEM_PROMPT = """You are the Algorithm Simulator — a cold, analytical system that evaluates content exactly like a social media platform's recommendation algorithm would. You think in signals, weights, and distribution mechanics. You have no feelings about the content; only data.
 
@@ -44,18 +45,18 @@ RULES:
 - Think like an algorithm, not a human reviewer. The algorithm doesn't care if the take is "good" — it cares if the take drives engagement signals."""
 
 
-def create_algorithm_simulator_agent(llm_config: dict) -> autogen.AssistantAgent:
+def create_algorithm_simulator_agent(client: OpenAIChatClient) -> Agent:
     """
     Create and return the Algorithm Simulator agent.
 
     Args:
-        llm_config: AutoGen LLM configuration dict.
+        client: An OpenAIChatClient instance for model inference.
 
     Returns:
-        An AutoGen AssistantAgent configured as the Algorithm Simulator.
+        An Agent configured as the Algorithm Simulator.
     """
-    return autogen.AssistantAgent(
+    return Agent(
         name="Algorithm_Simulator",
-        system_message=ALGORITHM_SYSTEM_PROMPT,
-        llm_config=llm_config,
+        instructions=ALGORITHM_SYSTEM_PROMPT,
+        client=client,
     )

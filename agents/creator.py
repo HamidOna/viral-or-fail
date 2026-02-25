@@ -6,7 +6,8 @@ culture. It creates posts tailored to the specific platform's format
 and audience expectations.
 """
 
-import autogen
+from agent_framework import Agent
+from agent_framework.openai import OpenAIChatClient
 
 CREATOR_SYSTEM_PROMPT = """You are the Content Creator — a trend-savvy gaming content creator who lives and breathes internet culture. You know every platform inside out and create content that feels native, not generic.
 
@@ -44,18 +45,18 @@ RULES:
 When given FEEDBACK from the Algorithm Simulator and Audience Persona, revise your content to address their specific concerns while keeping the creative energy high. Explain what you changed and why."""
 
 
-def create_content_creator_agent(llm_config: dict) -> autogen.AssistantAgent:
+def create_content_creator_agent(client: OpenAIChatClient) -> Agent:
     """
     Create and return the Content Creator agent.
 
     Args:
-        llm_config: AutoGen LLM configuration dict.
+        client: An OpenAIChatClient instance for model inference.
 
     Returns:
-        An AutoGen AssistantAgent configured as the Content Creator.
+        An Agent configured as the Content Creator.
     """
-    return autogen.AssistantAgent(
+    return Agent(
         name="Content_Creator",
-        system_message=CREATOR_SYSTEM_PROMPT,
-        llm_config=llm_config,
+        instructions=CREATOR_SYSTEM_PROMPT,
+        client=client,
     )

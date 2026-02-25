@@ -8,7 +8,8 @@ authentic — like a real comment or DM, not a structured review.
 
 import random
 
-import autogen
+from agent_framework import Agent
+from agent_framework.openai import OpenAIChatClient
 
 # Three distinct gaming community personas
 PERSONAS = {
@@ -85,25 +86,25 @@ def get_random_persona() -> dict:
 
 
 def create_audience_persona_agent(
-    llm_config: dict, persona: dict | None = None
-) -> tuple[autogen.AssistantAgent, dict]:
+    client: OpenAIChatClient, persona: dict | None = None
+) -> tuple[Agent, dict]:
     """
     Create and return the Audience Persona agent with a random persona.
 
     Args:
-        llm_config: AutoGen LLM configuration dict.
+        client: An OpenAIChatClient instance for model inference.
         persona: Optional specific persona dict. If None, one is randomly selected.
 
     Returns:
-        A tuple of (AutoGen AssistantAgent, persona info dict).
+        A tuple of (Agent, persona info dict).
     """
     if persona is None:
         persona = get_random_persona()
 
-    agent = autogen.AssistantAgent(
+    agent = Agent(
         name=persona["name"],
-        system_message=persona["system_prompt"],
-        llm_config=llm_config,
+        instructions=persona["system_prompt"],
+        client=client,
     )
 
     return agent, persona

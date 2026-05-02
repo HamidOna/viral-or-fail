@@ -193,33 +193,39 @@ def extract_scores(algorithm_response: str) -> dict:
             score = round(float(match.group(1)))
             scores[key] = min(100, max(0, score))
 
-    # For weighted total: the line often contains a full calculation like
-    # "WEIGHTED TOTAL: (85*0.30) + ... = 69.25/100"
-    # Strategy: look for "N/100" first (the final result). If not found,
-    # grab the last number after an "=" sign.
-    wt_match = re.search(
-        r"Weighted\s*Total[^\n]+", clean, re.IGNORECASE
-    )
-    if wt_match:
-        wt_line = wt_match.group(0)
-
-        # Try 1: match "N/100" — the definitive score format
-        score_match = re.search(r"(\d+(?:\.\d+)?)\s*/\s*100", wt_line)
-        if score_match:
-            scores["weighted_total"] = min(100, max(0, round(float(score_match.group(1)))))
-        else:
-            # Try 2: grab the last number after the final "=" sign
-            last_eq = wt_line.rfind("=")
-            if last_eq != -1:
-                after_eq = wt_line[last_eq:]
-                nums = re.findall(r"(\d+(?:\.\d+)?)", after_eq)
-                if nums:
-                    scores["weighted_total"] = min(100, max(0, round(float(nums[-1]))))
+    # For weighted total: the model produces three layouts interchangeably
+    #   1) Same line:                "WEIGHTED TOTAL: 73/100"
+    #   2) Same line + calculation:  "WEIGHTED TOTAL: = 22.5 + ... = 73.25/100"
+    #   3) Multi-line:               "WEIGHTED TOTAL:\n= 22.5 + ... = 73.25/100"
+    # The earlier `[^\n]+` regex missed (3) and silently fell back to 50,
+    # which the eval suite caught. We now scan a window of the next few
+    # non-blank lines after the WEIGHTED TOTAL header and look for "N/100"
+    # first, then a trailing "= N", then any number.
+    wt_header = re.search(r"Weighted\s*Total\s*:?", clean, re.IGNORECASE)
+    if wt_header:
+        after = clean[wt_header.end():]
+        window: list[str] = []
+        for raw in after.splitlines()[:5]:
+            line = raw.strip()
+            if not line and window:
+                break
+            if line:
+                window.append(line)
+        blob = " ".join(window)
+        if blob:
+            score_match = re.search(r"(\d+(?:\.\d+)?)\s*/\s*100", blob)
+            if score_match:
+                scores["weighted_total"] = min(100, max(0, round(float(score_match.group(1)))))
             else:
-                # Try 3: just grab the first number after the label
-                num_match = re.search(r"(\d+(?:\.\d+)?)", wt_line)
-                if num_match:
-                    scores["weighted_total"] = min(100, max(0, round(float(num_match.group(1)))))
+                last_eq = blob.rfind("=")
+                if last_eq != -1:
+                    nums = re.findall(r"(\d+(?:\.\d+)?)", blob[last_eq:])
+                    if nums:
+                        scores["weighted_total"] = min(100, max(0, round(float(nums[-1]))))
+                else:
+                    nums = re.findall(r"(\d+(?:\.\d+)?)", blob)
+                    if nums:
+                        scores["weighted_total"] = min(100, max(0, round(float(nums[0]))))
 
     return scores
 

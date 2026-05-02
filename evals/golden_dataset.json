@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "description": "Synthetic-but-realistic gaming social media posts with labeled engagement outcomes. Used by Tests 2 and 3 of the Viral or Fail eval suite.",
+  "posts": [
+    {
+      "id": "post_001",
+      "platform": "Twitter/X",
+      "topic": "Valorant Champions 2025",
+      "content": "EG winning Champions 2025 was the most underrated moment in Valorant esports history and people still don't talk about it enough.\n\nDemon1 carried that grand final on a level we won't see again until at least Champions '26. The map veto into Bind alone deserves a documentary.",
+      "real_engagement": {
+        "impressions": 2100000,
+        "likes": 45000,
+        "shares_or_retweets": 8000,
+        "replies_or_comments": 1200,
+        "engagement_rate_pct": 2.58
+      },
+      "engagement_score": 82,
+      "label": "viral",
+      "notes": "Hot take + esports nostalgia + named callout (Demon1) drove QRTs from competing fanbases."
+    },
+    {
+      "id": "post_002",
+      "platform": "TikTok",
+      "topic": "GTA 6 reveal reaction",
+      "content": "POV: you're watching the GTA 6 trailer for the first time *audio: dramatic strings + 'I'm gonna cry'*\n\n[ON SCREEN]: face cam reaction layered over the trailer's beach scene, cuts to player typing 'this is real?' in chat, then montage of pre-orders being added to cart.\n\nCaption: ok but Lucia is everything 😭 #GTA6 #GTAVI #Rockstar #FYP #gamingtok",
+      "real_engagement": {
+        "impressions": 8400000,
+        "likes": 980000,
+        "shares_or_retweets": 145000,
+        "replies_or_comments": 22000,
+        "engagement_rate_pct": 13.65
+      },
+      "engagement_score": 91,
+      "label": "viral",
+      "notes": "Reaction format + universal hype topic + trending audio hit every FYP signal at once. The 'real?' beat is the share trigger."
+    },
+    {
+      "id": "post_003",
+      "platform": "Twitter/X",
+      "topic": "Steam Deck OLED price",
+      "content": "$650 for the Steam Deck OLED is genuinely the best price-to-performance deal in handheld gaming right now. ROG Ally users seething.",
+      "real_engagement": {
+        "impressions": 380000,
+        "likes": 6200,
+        "shares_or_retweets": 540,
+        "replies_or_comments": 310,
+        "engagement_rate_pct": 1.85
+      },
+      "engagement_score": 55,
+      "label": "decent",
+      "notes": "Solid take, mild bait at the end pulls some QRTs, but no real polarisation. Decent reach inside the handheld niche."
+    },
+    {
+      "id": "post_004",
+      "platform": "TikTok",
+      "topic": "Genshin Impact 5.0 pulls",
+      "content": "*audio: 'and just like that' from SATC*\n\n[ON SCREEN]: 'me saving 200 pulls for Mavuika' → cuts to 50/50 lost to Keqing → final shot of empty primogem counter\n\nCaption: 6 months of saving for THIS bro 💀 #genshinimpact #50fail #mavuika #gachatok",
+      "real_engagement": {
+        "impressions": 420000,
+        "likes": 38000,
+        "shares_or_retweets": 1200,
+        "replies_or_comments": 680,
+        "engagement_rate_pct": 9.5
+      },
+      "engagement_score": 48,
+      "label": "decent",
+      "notes": "Hits the gacha-pain-tok niche perfectly but doesn't break out — the audio is cooling and the meme is well-trod."
+    },
+    {
+      "id": "post_005",
+      "platform": "YouTube",
+      "topic": "Hollow Knight: Silksong",
+      "content": "TITLE: I Played Silksong For 100 Hours So You Don't Have To (It's Better Than Hollow Knight)\nTHUMBNAIL: Hornet mid-dash with a red 'BETTER?' arrow pointing at her, split-screen with Knight on the left looking diminished. Bold yellow border.\nSTRUCTURE: cold open with the hardest boss fight (30s hook) → 'why the wait was worth it' → 3-act breakdown of combat / world / story → final verdict at 11:30.",
+      "real_engagement": {
+        "impressions": 220000,
+        "likes": 14000,
+        "shares_or_retweets": 480,
+        "replies_or_comments": 2100,
+        "engagement_rate_pct": 7.54
+      },
+      "engagement_score": 60,
+      "label": "decent",
+      "notes": "Strong title curiosity gap and on-topic for the indie audience, but the '100 hours' framing is overdone in the niche."
+    },
+    {
+      "id": "post_006",
+      "platform": "Instagram",
+      "topic": "Xbox Showcase 2025 announcements",
+      "content": "CAROUSEL — 7 slides:\n1) 'Everything Xbox just announced' over a stylised showcase logo\n2) Fable reveal screenshot + release window\n3) Perfect Dark gameplay still + 'Q4 2026'\n4) Indiana Jones still\n5) Game Pass day-one list\n6) Hardware refresh hint\n7) 'Save this for later → '\n\nCaption: Xbox is cooking again 🍳 swipe through every announcement. Which one are you most hyped for?",
+      "real_engagement": {
+        "impressions": 95000,
+        "likes": 4200,
+        "shares_or_retweets": 380,
+        "replies_or_comments": 215,
+        "engagement_rate_pct": 5.05
+      },
+      "engagement_score": 42,
+      "label": "decent",
+      "notes": "Carousel format works, but 'Save for later' calls feel formulaic and the topic was saturated within 30 minutes of the showcase."
+    },
+    {
+      "id": "post_007",
+      "platform": "Twitter/X",
+      "topic": "Activision Blizzard acquisition",
+      "content": "Honestly the Microsoft acquisition of Activision Blizzard has been mostly fine for consumers so far. Game Pass got better. Not sure why people were so worried.",
+      "real_engagement": {
+        "impressions": 12000,
+        "likes": 180,
+        "shares_or_retweets": 8,
+        "replies_or_comments": 22,
+        "engagement_rate_pct": 1.75
+      },
+      "engagement_score": 18,
+      "label": "flop",
+      "notes": "Lukewarm centrist take on a topic that needs heat to travel. No QRT bait, no novelty, dies in the first batch."
+    },
+    {
+      "id": "post_008",
+      "platform": "TikTok",
+      "topic": "5 games to play this weekend",
+      "content": "[ON SCREEN]: '5 games to play this weekend' over a stock background\n\nVoiceover lists: Cyberpunk 2077, Baldur's Gate 3, Elden Ring, Hades, Stardew Valley.\n\nCaption: which one are you playing? #gaming #games #weekend",
+      "real_engagement": {
+        "impressions": 8400,
+        "likes": 110,
+        "shares_or_retweets": 4,
+        "replies_or_comments": 6,
+        "engagement_rate_pct": 1.43
+      },
+      "engagement_score": 22,
+      "label": "flop",
+      "notes": "Generic listicle, no hook, no audio strategy, hashtags are too broad. The FYP shows it to ~200 people and stops."
+    },
+    {
+      "id": "post_009",
+      "platform": "YouTube",
+      "topic": "Pentiment retrospective",
+      "content": "TITLE: Pentiment Was Actually Important And Here's Why\nTHUMBNAIL: a screenshot of the game's medieval art with the title text in plain white sans-serif.\nSTRUCTURE: 2-minute intro about historical RPGs → why the game flopped commercially → the design lessons → why it matters now.",
+      "real_engagement": {
+        "impressions": 3200,
+        "likes": 95,
+        "shares_or_retweets": 12,
+        "replies_or_comments": 18,
+        "engagement_rate_pct": 3.91
+      },
+      "engagement_score": 15,
+      "label": "flop",
+      "notes": "Niche topic, weak thumbnail, vague title. Engagement rate from the viewers it does reach is healthy — but the algorithm never serves it widely."
+    },
+    {
+      "id": "post_010",
+      "platform": "Twitter/X",
+      "topic": "Concord shutdown post-mortem",
+      "content": "Concord shutting down is genuinely sad. The hero designs were creative and the gunplay was tight — y'all just refused to give it a fair shot because the marketing was bad.",
+      "real_engagement": {
+        "impressions": 1900000,
+        "likes": 2400,
+        "shares_or_retweets": 320,
+        "replies_or_comments": 18000,
+        "engagement_rate_pct": 1.09
+      },
+      "engagement_score": 50,
+      "label": "outlier",
+      "notes": "Got ratio'd into orbit. Reach is huge because the algorithm sees engagement velocity, but the like:reply ratio (1:7.5) is a community pile-on. Tests whether the Simulator can tell viral reach apart from positive reception."
+    }
+  ]
+}

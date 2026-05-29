@@ -36,15 +36,7 @@ def replot_test_2() -> None:
 
 def replot_test_3() -> None:
     data = json.loads((RESULTS / "test_3_rubric_adherence.json").read_text(encoding="utf-8"))
-    adherence_scores = [r["adherence_score"] for r in data["posts"]]
-    n_focus = sum(1 for r in data["posts"] if r["platform"] == data["focus_platform"])
-    plot3(
-        data["focus_per_criterion_pct_present"],
-        adherence_scores,
-        data["mean_adherence"],
-        data["focus_platform"],
-        n_focus,
-    )
+    plot3(data["posts"], data["mean_adherence"], data["mean_abs_math_diff"])
     print("  re-rendered eval_results/plots/03_adherence.png")
 
 

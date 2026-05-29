@@ -41,7 +41,6 @@ from evals.plot_style import (
     DPI,
     FIG_SIZE,
     PALETTE,
-    annotate_metric,
     apply_dark_theme,
     save_plot,
 )
@@ -185,7 +184,7 @@ async def run_test_3(*, verbose: bool = True) -> dict:
     with open(RESULTS_PATH, "w", encoding="utf-8") as fh:
         json.dump(summary, fh, indent=2)
 
-    _plot(per_criterion_pct, adherence_scores, mean_adherence, FOCUS_PLATFORM, len(focus_rows))
+    _plot(rows, mean_adherence, mean_abs_math_diff)
 
     if verbose:
         print()
@@ -201,85 +200,142 @@ async def run_test_3(*, verbose: bool = True) -> dict:
 
 
 def _plot(
-    per_criterion_pct: dict[str, float],
-    adherence_scores: list[int],
+    rows: list[dict],
     mean_adherence: float,
-    focus_platform: str,
-    n_focus: int,
+    mean_abs_math_diff: float,
 ) -> None:
+    """Render the Test 3 plot.
+
+    Two panels surface what the tightened judge actually checked:
+
+    - Top: per-post math drift (scatter), with the ±2-pt threshold the judge
+      uses to cap the adherence score at 3. Visualises math fidelity — readers
+      should see all points hovering near zero, well inside the threshold band.
+    - Bottom: count of evaluations by reasoning quality (specific / mixed /
+      generic). Visualises whether justifications cited platform mechanics or
+      just gave vibes-based praise.
+
+    Together these answer "did the Simulator actually deserve 5/5, or did
+    the judge just rubber-stamp it?" — the central question of Test 3.
+    """
     apply_dark_theme()
     fig, (ax_top, ax_bottom) = plt.subplots(
-        2, 1, figsize=FIG_SIZE, dpi=DPI, gridspec_kw={"height_ratios": [3, 1.2]}
+        2, 1, figsize=FIG_SIZE, dpi=DPI, gridspec_kw={"height_ratios": [3, 1.5]}
     )
 
-    # ── Top: stacked horizontal bars per criterion ──────────────────────
-    criteria = list(per_criterion_pct.keys())
-    scored = [per_criterion_pct[c] for c in criteria]
-    skipped = [100.0 - s for s in scored]
+    # ── Top: per-post math drift (scatter + threshold lines) ────────────
+    post_ids = [r["post_id"] for r in rows]
+    math_diffs = [r["math_diff"] for r in rows]
+    threshold = 2.0  # judge caps adherence at 3 above this magnitude
 
-    y = list(range(len(criteria)))
-    ax_top.barh(
-        y, scored, color=PALETTE["viral"], edgecolor=PALETTE["text"], linewidth=0.6, label="explicitly scored"
+    point_colors = [
+        PALETTE["viral"] if abs(d) <= threshold else PALETTE["flop"]
+        for d in math_diffs
+    ]
+
+    # Reference lines first so the points sit on top
+    ax_top.axhspan(-threshold, threshold, color=PALETTE["viral"], alpha=0.08, zorder=0)
+    ax_top.axhline(0, color=PALETTE["muted"], linewidth=1, alpha=0.7, zorder=1)
+    ax_top.axhline(
+        threshold,
+        color=PALETTE["reference"],
+        linestyle="--",
+        alpha=0.7,
+        label=f"±{threshold:.0f}-pt judge threshold",
+        zorder=1,
     )
-    ax_top.barh(
-        y,
-        skipped,
-        left=scored,
-        color=PALETTE["flop"],
+    ax_top.axhline(-threshold, color=PALETTE["reference"], linestyle="--", alpha=0.7, zorder=1)
+
+    # Vertical "lollipop" lines from 0 to each non-zero drift, so zero values
+    # don't look like missing data — they just sit on the baseline as dots.
+    for i, d in enumerate(math_diffs):
+        if d != 0:
+            ax_top.vlines(i, 0, d, color=point_colors[i], linewidth=2, alpha=0.6, zorder=2)
+
+    ax_top.scatter(
+        range(len(post_ids)),
+        math_diffs,
+        s=120,
+        c=point_colors,
         edgecolor=PALETTE["text"],
-        linewidth=0.6,
-        alpha=0.85,
-        label="glossed over",
+        linewidth=1,
+        zorder=4,
     )
 
-    for i, c in enumerate(criteria):
+    # Annotate each point with its drift value (since 0.0/0.2 are barely visible)
+    for i, d in enumerate(math_diffs):
+        offset = 0.18 if d >= 0 else -0.18
         ax_top.text(
-            max(scored[i] / 2, 4),
             i,
-            f"{scored[i]:.0f}%",
-            va="center",
+            d + offset,
+            f"{d:+.1f}",
             ha="center",
-            color="#0F1110",
-            fontsize=10,
-            weight="bold",
+            va="bottom" if d >= 0 else "top",
+            color=PALETTE["text"],
+            fontsize=9,
+            alpha=0.9,
         )
 
-    ax_top.set_yticks(y)
-    ax_top.set_yticklabels(criteria)
-    ax_top.set_xlim(0, 100)
-    ax_top.set_xlabel("% of evaluations")
+    ax_top.set_xticks(range(len(post_ids)))
+    ax_top.set_xticklabels([p.replace("post_", "#") for p in post_ids])
+    ax_top.set_ylim(-3, 3)
+    # Short label avoids overlap with the bottom panel's "Posts" label; the
+    # title already explains what math drift means.
+    ax_top.set_ylabel("Math drift (points)")
+    # Headline metrics live in a subtitle (pad=22 reserves space) instead of a
+    # corner annotation, so they can't overlap the ±2 threshold line.
     ax_top.set_title(
-        f"Test 3 — Rubric adherence on {focus_platform} criteria ({n_focus} posts)"
+        "Test 3 — Did the Simulator earn its 5/5 under a strict judge?",
+        pad=22,
     )
-    ax_top.invert_yaxis()
-    ax_top.legend(loc="lower right", framealpha=0.9)
-    ax_top.grid(axis="x", linestyle="--", alpha=0.3)
-
-    # ── Bottom: histogram of overall adherence scores ───────────────────
-    counts = Counter(adherence_scores)
-    bins = [1, 2, 3, 4, 5]
-    bar_heights = [counts.get(b, 0) for b in bins]
-
-    ax_bottom.bar(
-        bins,
-        bar_heights,
+    ax_top.text(
+        0.5,
+        1.01,
+        f"Mean adherence: {mean_adherence:.2f} / 5    •    "
+        f"Mean |math drift|: {mean_abs_math_diff:.2f} pts",
+        transform=ax_top.transAxes,
+        ha="center",
+        va="bottom",
+        fontsize=12,
         color=PALETTE["reference"],
+        fontweight="bold",
+    )
+    ax_top.legend(loc="upper right", framealpha=0.9)
+    ax_top.grid(axis="y", linestyle="--", alpha=0.25)
+
+    # ── Bottom: reasoning quality classification ────────────────────────
+    quality_order = ["specific", "mixed", "generic"]
+    quality_colors = [PALETTE["viral"], PALETTE["decent"], PALETTE["flop"]]
+    quality_counts = Counter(r["reasoning_quality"] for r in rows)
+    counts = [quality_counts.get(q, 0) for q in quality_order]
+
+    bars = ax_bottom.bar(
+        quality_order,
+        counts,
+        color=quality_colors,
         edgecolor=PALETTE["text"],
         linewidth=0.6,
-        width=0.7,
+        width=0.55,
     )
-    for b, h in zip(bins, bar_heights):
-        if h:
-            ax_bottom.text(b, h + 0.1, str(h), ha="center", color=PALETTE["text"], fontsize=10)
+    for bar, c in zip(bars, counts):
+        if c > 0:
+            ax_bottom.text(
+                bar.get_x() + bar.get_width() / 2,
+                c + 0.15,
+                str(c),
+                ha="center",
+                color=PALETTE["text"],
+                fontsize=11,
+                fontweight="bold",
+            )
 
-    ax_bottom.set_xticks(bins)
-    ax_bottom.set_xlabel("Adherence score (1–5)")
     ax_bottom.set_ylabel("Posts")
-    ax_bottom.set_title("Distribution of overall adherence (all 10 posts)")
-    ax_bottom.set_ylim(0, max(bar_heights) + 1.2 if bar_heights else 1)
+    ax_bottom.set_title(
+        f"Reasoning quality classification ({len(rows)} evaluations)",
+        fontsize=14,
+    )
+    ax_bottom.set_ylim(0, max(counts) + 1.5 if any(counts) else 1)
     ax_bottom.grid(axis="y", linestyle="--", alpha=0.3)
-
-    annotate_metric(ax_top, f"Mean adherence: {mean_adherence:.2f} / 5", loc="upper right")
 
     fig.tight_layout()
     save_plot(fig, PLOT_PATH)

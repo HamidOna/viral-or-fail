@@ -33,7 +33,6 @@ from evals.plot_style import (
     DPI,
     FIG_SIZE,
     PALETTE,
-    annotate_metric,
     apply_dark_theme,
     color_for_label,
     save_plot,
@@ -216,12 +215,26 @@ def _plot(per_post: list[dict], mean_cv: float) -> None:
     ax.set_yticklabels(labels)
     ax.set_xlim(0, 100)
     ax.set_xlabel("Weighted total score (0–100)")
-    ax.set_title("Test 1 — Algorithm Simulator score consistency (10 reps per post)")
+    # Headline metric lives in a subtitle (pad=22 reserves space) instead of a
+    # corner annotation, so it can't overlap the top post's boxplot.
+    ax.set_title(
+        "Test 1 — Algorithm Simulator score consistency (10 reps per post)",
+        pad=22,
+    )
+    ax.text(
+        0.5,
+        1.01,
+        f"Mean CV across posts: {mean_cv:.2f}%",
+        transform=ax.transAxes,
+        ha="center",
+        va="bottom",
+        fontsize=13,
+        color=PALETTE["reference"],
+        fontweight="bold",
+    )
     ax.grid(axis="x", linestyle="--", alpha=0.3)
     ax.invert_yaxis()
-    ax.legend(loc="lower right", framealpha=0.9)
-
-    annotate_metric(ax, f"Mean CV across posts: {mean_cv:.2f}%", loc="upper right")
+    ax.legend(loc="lower left", framealpha=0.9)
 
     save_plot(fig, PLOT_PATH)
 
